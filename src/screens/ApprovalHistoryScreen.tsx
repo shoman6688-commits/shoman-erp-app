@@ -6,7 +6,7 @@ import { mockOrders, Order } from '../data/mockData';
 const COUNTRY_FLAGS: Record<string, string> = { JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', CN: '🇨🇳' };
 type FilterType = 'all' | 'approved' | 'rejected';
 
-export default function ApprovalHistoryScreen() {
+export default function ApprovalHistoryScreen({ navigation }: { navigation?: any }) {
   const [filter, setFilter] = useState<FilterType>('all');
 
   const all: (Order & { country: string })[] = [];
@@ -46,6 +46,14 @@ export default function ApprovalHistoryScreen() {
 
       {history.map(order => (
         <View key={order.id} style={styles.card}>
+          <TouchableOpacity
+            style={styles.advanceLink}
+            onPress={() => navigation?.navigate('AdvancePayment', { orderId: order.id, orderNo: order.orderNo })}
+          >
+            <Ionicons name="document-text-outline" size={13} color="#1A73E8" />
+            <Text style={styles.advanceLinkText}>代墊單</Text>
+            <Ionicons name="chevron-forward" size={13} color="#1A73E8" />
+          </TouchableOpacity>
           <View style={styles.cardHeader}>
             <Text style={styles.flag}>{COUNTRY_FLAGS[order.country]}</Text>
             <Text style={styles.orderNo}>{order.orderNo}</Text>
@@ -95,6 +103,8 @@ const styles = StyleSheet.create({
   filterText: { fontSize: 13, fontWeight: '600', color: '#8E8E93' },
   filterTextActive: { color: '#fff' },
   card: { backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 10, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 1 },
+  advanceLink: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-end', marginBottom: 6 },
+  advanceLinkText: { fontSize: 12, color: '#1A73E8', fontWeight: '600' },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 },
   flag: { fontSize: 18 },
   orderNo: { flex: 1, fontSize: 12, fontWeight: '700', color: '#1C1C1E' },

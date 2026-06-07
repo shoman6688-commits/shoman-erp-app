@@ -10,7 +10,7 @@ function formatAmount(amount: number, currency: string) {
   return `${currency} ${amount.toLocaleString()}`;
 }
 
-export default function PendingApprovalScreen() {
+export default function PendingApprovalScreen({ navigation }: { navigation?: any }) {
   const [orders, setOrders] = useState(() => {
     const all: (Order & { country: string })[] = [];
     (Object.keys(mockOrders) as (keyof typeof mockOrders)[]).forEach(k => {
@@ -56,6 +56,14 @@ export default function PendingApprovalScreen() {
 
       {pending.map(order => (
         <View key={order.id} style={styles.card}>
+          <TouchableOpacity
+            style={styles.advanceLink}
+            onPress={() => navigation?.navigate('AdvancePayment', { orderId: order.id, orderNo: order.orderNo })}
+          >
+            <Ionicons name="document-text-outline" size={14} color="#1A73E8" />
+            <Text style={styles.advanceLinkText}>查看代墊單</Text>
+            <Ionicons name="chevron-forward" size={14} color="#1A73E8" />
+          </TouchableOpacity>
           <View style={styles.cardHeader}>
             <Text style={styles.flag}>{COUNTRY_FLAGS[order.country]}</Text>
             <Text style={styles.orderNo}>{order.orderNo}</Text>
@@ -109,6 +117,8 @@ const styles = StyleSheet.create({
   badgeText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyText: { fontSize: 16, color: '#8E8E93' },
+  advanceLink: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-end', marginBottom: 8 },
+  advanceLinkText: { fontSize: 13, color: '#1A73E8', fontWeight: '600' },
   card: { backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 },
   flag: { fontSize: 20 },

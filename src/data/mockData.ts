@@ -187,3 +187,97 @@ export const mockUser = {
   role: '管理員',
   avatar: null,
 };
+
+export interface AdvancePayment {
+  id: string;
+  orderId: string;
+  orderNo: string;
+  type: '代墊款' | '退款';
+  item: string;
+  currency: string;
+  amount: number;
+  applyDate: string;
+  applicant: string;
+  recipient: string;
+  recipientAccount: string;
+  content: string;
+  note: string;
+  transferBank: string;
+  paymentMethod: string;
+  paymentDate: string;
+  accountingReviewed: boolean;
+  managerReviewed: boolean;
+  accountingReviewDate: string;
+  accountingReviewer: string;
+  managerReviewDate: string;
+  managerReviewer: string;
+}
+
+export const mockAdvancePayments: AdvancePayment[] = [
+  {
+    id: 'adv001', orderId: 'f54211b0', orderNo: 'SDJ01HA260601A',
+    type: '代墊款', item: '司機住宿費', currency: 'JPY', amount: 8000,
+    applyDate: '2026/05/28', applicant: '蔡潔萱JENNY',
+    recipient: '北日本交通', recipientAccount: '三菱UFJ 1234-567890',
+    content: '東北行程司機2晚住宿費用', note: '已取得發票',
+    transferBank: '台新銀行', paymentMethod: '電匯', paymentDate: '2026/06/01',
+    accountingReviewed: false, managerReviewed: false,
+    accountingReviewDate: '', accountingReviewer: '',
+    managerReviewDate: '', managerReviewer: '',
+  },
+  {
+    id: 'adv002', orderId: '1f48957f', orderNo: 'FUK03HA260601A',
+    type: '代墊款', item: '車資尾款', currency: 'JPY', amount: 43000,
+    applyDate: '2026/05/30', applicant: '張琳青RITA',
+    recipient: '九州ドライブ', recipientAccount: '福岡銀行 9876-543210',
+    content: '福岡4日包車尾款', note: '',
+    transferBank: '國泰世華', paymentMethod: '電匯', paymentDate: '2026/06/03',
+    accountingReviewed: false, managerReviewed: false,
+    accountingReviewDate: '', accountingReviewer: '',
+    managerReviewDate: '', managerReviewer: '',
+  },
+  {
+    id: 'adv003', orderId: '2fe0861a', orderNo: 'SPK06AF260604A',
+    type: '代墊款', item: '司機餐費＋過路費', currency: 'JPY', amount: 12500,
+    applyDate: '2026/06/01', applicant: '黃煒楷KEN',
+    recipient: '北海道観光', recipientAccount: '北洋銀行 5555-111222',
+    content: '北海道6日行程司機雜費', note: 'VIP客戶，優先處理',
+    transferBank: '玉山銀行', paymentMethod: '電匯', paymentDate: '',
+    accountingReviewed: false, managerReviewed: false,
+    accountingReviewDate: '', accountingReviewer: '',
+    managerReviewDate: '', managerReviewer: '',
+  },
+  {
+    id: 'adv004', orderId: 'kr002', orderNo: 'PUS02SO260610A',
+    type: '代墊款', item: '車資全額', currency: 'KRW', amount: 1680000,
+    applyDate: '2026/06/02', applicant: '戴耀輝DYSON',
+    recipient: 'Busan Tour', recipientAccount: 'KEB하나은행 123-456789-01',
+    content: '釜山3日 Solati 包車全額', note: '',
+    transferBank: '第一銀行', paymentMethod: '電匯', paymentDate: '',
+    accountingReviewed: false, managerReviewed: false,
+    accountingReviewDate: '', accountingReviewer: '',
+    managerReviewDate: '', managerReviewer: '',
+  },
+  {
+    id: 'adv005', orderId: 'th001', orderNo: 'BKK01VN260605A',
+    type: '代墊款', item: '車資訂金', currency: 'THB', amount: 9000,
+    applyDate: '2026/05/25', applicant: '張琳青RITA',
+    recipient: 'Bangkok Tour Co.', recipientAccount: 'กสิกรไทย 012-3-45678-9',
+    content: '曼谷3日Vans訂金50%', note: '需在出發前7天付清',
+    transferBank: '兆豐銀行', paymentMethod: '電匯', paymentDate: '2026/05/27',
+    accountingReviewed: false, managerReviewed: false,
+    accountingReviewDate: '', accountingReviewer: '',
+    managerReviewDate: '', managerReviewer: '',
+  },
+  {
+    id: 'adv006', orderId: 'cn001', orderNo: 'SHA01BU260603A',
+    type: '代墊款', item: '商務車租賃費', currency: 'CNY', amount: 7040,
+    applyDate: '2026/05/29', applicant: '蔡潔萱JENNY',
+    recipient: '上海包車服務', recipientAccount: '中國銀行 6217-0012-3456-7890',
+    content: '上海3日商務車全額', note: '',
+    transferBank: '中信銀行', paymentMethod: '電匯', paymentDate: '',
+    accountingReviewed: false, managerReviewed: false,
+    accountingReviewDate: '', accountingReviewer: '',
+    managerReviewDate: '', managerReviewer: '',
+  },
+];
