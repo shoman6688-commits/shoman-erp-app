@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "xiaoman-erp-app",
-    "slug": "xiaoman-erp-app",
+    "name": "shoman",
+    "slug": "shoman-erp-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

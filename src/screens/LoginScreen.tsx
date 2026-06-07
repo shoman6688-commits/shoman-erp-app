@@ -1,10 +1,28 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { colors } from '../theme/colors';
+import { mockAccounts } from '../data/mockData';
 
-export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
+interface Props {
+  onLogin: (role: 'sales' | 'accounting', name: string) => void;
+}
+
+export default function LoginScreen({ onLogin }: Props) {
   const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
+
+  const handleLogin = () => {
+    if (!account.trim()) {
+      Alert.alert('請輸入帳號');
+      return;
+    }
+    const user = mockAccounts.find(u => u.username === account.trim().toLowerCase());
+    if (user) {
+      onLogin(user.role as 'sales' | 'accounting', user.name);
+    } else {
+      Alert.alert('帳號不存在', '請確認帳號是否正確');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -14,7 +32,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             <Text style={styles.logoText}>滿</Text>
           </View>
           <Text style={styles.appName}>小滿訂單管理系統</Text>
-          <Text style={styles.appSub}>XIAOMAN ORDER MANAGEMENT</Text>
+          <Text style={styles.appSub}>SHOMAN ORDER MANAGEMENT</Text>
         </View>
 
         <View style={styles.form}>
@@ -26,6 +44,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             placeholder="請輸入帳號"
             placeholderTextColor={colors.text.light}
             autoCapitalize="none"
+            autoCorrect={false}
           />
           <Text style={styles.label}>密碼</Text>
           <TextInput
@@ -36,9 +55,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             placeholderTextColor={colors.text.light}
             secureTextEntry
           />
-          <TouchableOpacity style={styles.btn} onPress={onLogin}>
+          <TouchableOpacity style={styles.btn} onPress={handleLogin}>
             <Text style={styles.btnText}>登入</Text>
           </TouchableOpacity>
+          <Text style={styles.hint}>業務帳號：dyson / ken / jenny / rita{'\n'}會計帳號：accounting</Text>
         </View>
 
         <Text style={styles.footer}>© 2023 - 2026 小滿科技有限公司</Text>
@@ -74,5 +94,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', marginTop: 4,
   },
   btnText: { color: colors.white, fontSize: 16, fontWeight: '700' },
+  hint: { marginTop: 14, fontSize: 11, color: colors.text.light, textAlign: 'center', lineHeight: 18 },
   footer: { textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 12 },
 });
