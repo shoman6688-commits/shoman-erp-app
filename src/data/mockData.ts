@@ -9,9 +9,23 @@ export const mockAccounts = [
   { username: 'jp002', role: 'supplier', name: '北海道観光', lang: 'ja', company: '北海道観光株式会社', region: '北海道' },
   { username: 'th001', role: 'supplier', name: 'Bangkok Tour Co.', lang: 'th', company: 'Bangkok Tour Co., Ltd.', region: 'กรุงเทพฯ / พัทยา' },
   { username: 'tw001', role: 'supplier', name: '台灣地接', lang: 'zh', company: '台灣地接有限公司', region: '全台灣' },
+  { username: 'kr001', role: 'supplier', name: 'Seoul Drive Co.', lang: 'zh', company: 'Seoul Drive Co., Ltd.', region: '首爾/京畿道/江原道' },
 ];
 
 export type SupplierOrderStatus = 'pending' | 'confirmed' | 'departed' | 'in_service' | 'completed' | 'cancelled';
+
+export interface DayItinerary {
+  day: number;
+  date: string;
+  pickupTime: string;
+  receivingCompany: string;
+  driverName: string;
+  hotelBooking: string;
+  serviceType: string;
+  route: string;
+  hotelInfo: string;
+  note: string;
+}
 
 export interface SupplierOrder {
   id: string;
@@ -29,16 +43,31 @@ export interface SupplierOrder {
   country: string;
   supplierUsername: string;
   receiptUploaded: boolean;
+  transferConfirmed: boolean;
+  groupConfirmed: boolean;
+  itinerary: DayItinerary[];
 }
 
 export const mockSupplierOrders: SupplierOrder[] = [
   {
     id: 'so001', orderNo: 'TYO01AF260615A', customer: '林志豪', pax: 4,
     departure: '2026/06/15', return: '2026/06/15', vehicle: 'アルファード',
-    region: '関東地区', route: '成田空港 → 浅草 → 東京スカイツリー → 新宿ホテル',
+    region: '関東地区', route: '成田空港 → 浅草 → 東京スカイツリー → 新宿',
     note: '客人攜帶大型行李 x4，請提前確認行李廂空間',
     salesContact: '黃煒楷KEN', status: 'pending', country: 'JP',
     supplierUsername: 'jp001', receiptUploaded: false,
+    transferConfirmed: false, groupConfirmed: false,
+    itinerary: [
+      {
+        day: 1, date: '2026/06/15', pickupTime: '09:20',
+        receivingCompany: '駿途株式会社', driverName: '',
+        hotelBooking: '新宿パークハイアット',
+        serviceType: '全日包車',
+        route: '成田空港 → 浅草寺 → 東京スカイツリー → 秋葉原 → 新宿パークハイアット',
+        hotelInfo: '新宿パークハイアット | TEL: 03-5322-1234',
+        note: '實際用車時間10小時，最早08:00，最晚18:00',
+      },
+    ],
   },
   {
     id: 'so002', orderNo: 'TYO02AF260618A', customer: 'VIP-陳家明', pax: 6,
@@ -47,6 +76,45 @@ export const mockSupplierOrders: SupplierOrder[] = [
     note: 'VIP客戶，請司機著正式服裝。全程需要英語或中文服務',
     salesContact: '黃煒楷KEN', status: 'pending', country: 'JP',
     supplierUsername: 'jp001', receiptUploaded: false,
+    transferConfirmed: false, groupConfirmed: false,
+    itinerary: [
+      {
+        day: 1, date: '2026/06/18', pickupTime: '10:00',
+        receivingCompany: '駿途株式会社', driverName: '',
+        hotelBooking: '鎌倉プリンスホテル',
+        serviceType: '全日包車',
+        route: '羽田空港 → 鶴岡八幡宮 → 鎌倉大仏 → 長谷寺 → 鎌倉プリンスホテル',
+        hotelInfo: '鎌倉プリンスホテル | TEL: 0467-32-1111',
+        note: 'VIP：司機請著正式服裝，備礦泉水與濕紙巾',
+      },
+      {
+        day: 2, date: '2026/06/19', pickupTime: '09:00',
+        receivingCompany: '駿途株式会社', driverName: '',
+        hotelBooking: '箱根強羅環翠楼',
+        serviceType: '全日包車',
+        route: '鎌倉プリンスホテル → 箱根彫刻の森美術館 → 大涌谷 → 芦ノ湖 → 強羅環翠楼',
+        hotelInfo: '箱根強羅環翠楼 | TEL: 0460-82-3141',
+        note: '大涌谷視空氣品質決定是否前往，請司機提前確認',
+      },
+      {
+        day: 3, date: '2026/06/20', pickupTime: '07:30',
+        receivingCompany: '駿途株式会社', driverName: '',
+        hotelBooking: '富士マリオット山中湖',
+        serviceType: '全日包車',
+        route: '強羅環翠楼 → 富士山五合目 → 忍野八海 → 富士マリオット山中湖',
+        hotelInfo: '富士マリオット山中湖 | TEL: 0555-62-0111',
+        note: '富士山五合目視天候決定，備選河口湖遊覧',
+      },
+      {
+        day: 4, date: '2026/06/21', pickupTime: '10:00',
+        receivingCompany: '駿途株式会社', driverName: '',
+        hotelBooking: '',
+        serviceType: '機場送機',
+        route: '富士マリオット山中湖 → 羽田空港',
+        hotelInfo: '',
+        note: '航班 CI108 13:45 出發，請10:00準時出發',
+      },
+    ],
   },
   {
     id: 'so003', orderNo: 'SDJ01HA260616A', customer: '王美玲', pax: 7,
@@ -55,6 +123,36 @@ export const mockSupplierOrders: SupplierOrder[] = [
     note: '2泊3日、ドライバー宿泊費含む',
     salesContact: '蔡潔萱JENNY', status: 'confirmed', country: 'JP',
     supplierUsername: 'jp001', receiptUploaded: false,
+    transferConfirmed: true, groupConfirmed: false,
+    itinerary: [
+      {
+        day: 1, date: '2026/06/16', pickupTime: '09:00',
+        receivingCompany: '駿途株式会社', driverName: '田中 健一',
+        hotelBooking: '松島海岸温泉ホテル',
+        serviceType: '全日包車',
+        route: '仙台駅 → 塩竈神社 → 松島湾クルーズ → 松島海岸温泉ホテル',
+        hotelInfo: '松島海岸温泉ホテル | TEL: 022-354-2121',
+        note: '',
+      },
+      {
+        day: 2, date: '2026/06/17', pickupTime: '09:00',
+        receivingCompany: '駿途株式会社', driverName: '田中 健一',
+        hotelBooking: '花巻温泉ホテル千秋閣',
+        serviceType: '全日包車',
+        route: '松島 → 中尊寺金色堂 → 毛越寺 → 花巻温泉ホテル千秋閣',
+        hotelInfo: '花巻温泉ホテル千秋閣 | TEL: 0198-37-2111',
+        note: '中尊寺は高台のため足腰が弱い方はご注意ください',
+      },
+      {
+        day: 3, date: '2026/06/18', pickupTime: '10:00',
+        receivingCompany: '駿途株式会社', driverName: '田中 健一',
+        hotelBooking: '',
+        serviceType: '半日包車',
+        route: '花巻温泉 → 花巻空港',
+        hotelInfo: '',
+        note: '花巻空港 NH781 12:40 出發',
+      },
+    ],
   },
   {
     id: 'so004', orderNo: 'SPK03AF260610A', customer: '張志強', pax: 5,
@@ -63,14 +161,121 @@ export const mockSupplierOrders: SupplierOrder[] = [
     note: '花季行程，請確認薰衣草開花狀況',
     salesContact: '黃煒楷KEN', status: 'completed', country: 'JP',
     supplierUsername: 'jp002', receiptUploaded: true,
+    transferConfirmed: true, groupConfirmed: true,
+    itinerary: [
+      {
+        day: 1, date: '2026/06/10', pickupTime: '14:00',
+        receivingCompany: '北海道観光株式会社', driverName: '佐藤 博',
+        hotelBooking: '小樽朝里クラッセホテル',
+        serviceType: '機場接送',
+        route: '新千歳空港 → 小樽運河 → 小樽朝里クラッセホテル',
+        hotelInfo: '小樽朝里クラッセホテル | TEL: 0134-52-3800',
+        note: '',
+      },
+      {
+        day: 2, date: '2026/06/11', pickupTime: '09:00',
+        receivingCompany: '北海道観光株式会社', driverName: '佐藤 博',
+        hotelBooking: '富良野ナチュラル温泉ホテル',
+        serviceType: '全日包車',
+        route: '小樽 → ファーム富田（薰衣草） → 四季彩の丘 → 富良野ナチュラル温泉',
+        hotelInfo: '富良野ナチュラル温泉ホテル | TEL: 0167-23-4567',
+        note: '薰衣草6月中旬開花約7成，實況以現場為準',
+      },
+    ],
   },
   {
     id: 'so005', orderNo: 'BKK01VN260620A', customer: '劉志遠', pax: 6,
     departure: '2026/06/20', return: '2026/06/23', vehicle: 'Van',
-    region: 'กรุงเทพฯ', route: 'สนามบินสุวรรณภูมิ → วัดพระแก้ว → วัดโพธิ์ → อยุธยา → กรุงเทพฯ',
+    region: 'กรุงเทพฯ', route: 'สนามบินสุวรรณภูมิ → วัดพระแก้ว → อยุธยา',
     note: 'ลูกค้าต้องการมัคคุเทศก์ที่พูดภาษาจีนได้',
     salesContact: '張琳青RITA', status: 'pending', country: 'TH',
     supplierUsername: 'th001', receiptUploaded: false,
+    transferConfirmed: false, groupConfirmed: false,
+    itinerary: [
+      {
+        day: 1, date: '2026/06/20', pickupTime: '13:00',
+        receivingCompany: 'Bangkok Tour Co., Ltd.', driverName: '',
+        hotelBooking: 'Centara Grand CentralWorld',
+        serviceType: 'รับจากสนามบิน',
+        route: 'สนามบินสุวรรณภูมิ → Centara Grand CentralWorld',
+        hotelInfo: 'Centara Grand CentralWorld | TEL: 02-100-1234',
+        note: 'ไฟลท์ CI837 ถึง 11:20 รอรับสัมภาระก่อน',
+      },
+      {
+        day: 2, date: '2026/06/21', pickupTime: '08:00',
+        receivingCompany: 'Bangkok Tour Co., Ltd.', driverName: '',
+        hotelBooking: 'Centara Grand CentralWorld',
+        serviceType: 'รถเช่าทั้งวัน',
+        route: 'โรงแรม → วัดพระแก้ว → วัดโพธิ์ → วัดอรุณ → ล่องเรือเจ้าพระยา → โรงแรม',
+        hotelInfo: 'Centara Grand CentralWorld | TEL: 02-100-1234',
+        note: 'วัดพระแก้วแต่งกายสุภาพ ต้องคลุมไหล่และขา',
+      },
+      {
+        day: 3, date: '2026/06/22', pickupTime: '07:00',
+        receivingCompany: 'Bangkok Tour Co., Ltd.', driverName: '',
+        hotelBooking: 'อยุธยาริเวอร์ไซด์ รีสอร์ท',
+        serviceType: 'รถเช่าทั้งวัน',
+        route: 'กรุงเทพฯ → พระนครศรีอยุธยา → วัดมหาธาตุ → วัดพระศรีสรรเพชญ์ → โรงแรม',
+        hotelInfo: 'อยุธยาริเวอร์ไซด์ รีสอร์ท | TEL: 035-241-333',
+        note: '',
+      },
+    ],
+  },
+  {
+    id: 'so007', orderNo: 'VIP-SEL05HD260616A', customer: 'VIP客戶', pax: 5,
+    departure: '2026/06/16', return: '2026/06/20', vehicle: 'Hyundai H350',
+    region: '首爾/江原道', route: '仁川機場→江華島→明洞→江陵→注文津→首爾→仁川機場',
+    note: '入境 LJ736 14:15 / 出境 LJ737 14:50，請提前確認航班',
+    salesContact: '戴耀輝DYSON', status: 'pending', country: 'KR',
+    supplierUsername: 'kr001', receiptUploaded: false,
+    transferConfirmed: false, groupConfirmed: false,
+    itinerary: [
+      {
+        day: 1, date: '2026/06/16', pickupTime: '14:15',
+        receivingCompany: 'Seoul Drive Co., Ltd.', driverName: '',
+        hotelBooking: '我方代訂',
+        serviceType: '全日包車',
+        route: '仁川國際機場 → 江華島斜坡滑車（每人一次）→ 明洞商圈 → 廣藏市場 → 飯店\n\n早：✗　午：馬鈴薯豬骨湯＋季節小菜　晚：敬請自理',
+        hotelInfo: 'Baiton Seoul Dongdaemun Hotel',
+        note: 'LJ736 抵達時間 14:15，請於入境大廳舉牌等候',
+      },
+      {
+        day: 2, date: '2026/06/17', pickupTime: '09:00',
+        receivingCompany: 'Seoul Drive Co., Ltd.', driverName: '',
+        hotelBooking: '我方代訂',
+        serviceType: '全日包車',
+        route: '飯店 → 江陵中央市場 → 鏡浦湖 → 安木海邊 → 飯店\n\n早：飯店內用　午：長腳蟹拉麵　晚：江陵高先生火爐炭烤魚',
+        hotelInfo: 'SL Hotel Gangneung',
+        note: '',
+      },
+      {
+        day: 3, date: '2026/06/18', pickupTime: '09:00',
+        receivingCompany: 'Seoul Drive Co., Ltd.', driverName: '',
+        hotelBooking: '我方代訂',
+        serviceType: '全日包車',
+        route: '飯店 → 注文津海邊（BTS公車站・韓劇《鬼怪》拍攝地）→ Haslla Art World → 飯店\n\n早：飯店內用　午：涼拌蕎麥麵＋水煮五花肉（4人一份）　晚：韓式烤肉吃到飽－明倫進士',
+        hotelInfo: 'Baiton Seoul Dongdaemun Hotel',
+        note: '',
+      },
+      {
+        day: 4, date: '2026/06/19', pickupTime: '09:00',
+        receivingCompany: 'Seoul Drive Co., Ltd.', driverName: '',
+        hotelBooking: '我方代訂',
+        serviceType: '全日包車',
+        route: '飯店 → 星空圖書館 → 聖水洞 → 南山谷韓屋村 → 首爾塔（含來回纜車，不含登塔）→ 飯店\n\n早：飯店內用　午：自理　晚：滿足五香豬腳料理（4人一桌）',
+        hotelInfo: 'Baiton Seoul Dongdaemun Hotel',
+        note: '',
+      },
+      {
+        day: 5, date: '2026/06/20', pickupTime: '09:00',
+        receivingCompany: 'Seoul Drive Co., Ltd.', driverName: '',
+        hotelBooking: '我方代訂',
+        serviceType: '全日包車',
+        route: '飯店 → 樂天超市 → 仁川國際機場\n\n早：飯店內用　午：✗　晚：✗',
+        hotelInfo: '溫暖的家 ✈',
+        note: 'LJ737 離境時間 14:50，請於 12:30 前抵達機場',
+      },
+    ],
   },
   {
     id: 'so006', orderNo: 'BKK02VN260625A', customer: '黃淑芬', pax: 8,
@@ -79,6 +284,18 @@ export const mockSupplierOrders: SupplierOrder[] = [
     note: 'มีเด็กเล็ก 2 คน ต้องการที่นั่งนิรภัยสำหรับเด็ก',
     salesContact: '張琳青RITA', status: 'confirmed', country: 'TH',
     supplierUsername: 'th001', receiptUploaded: false,
+    transferConfirmed: true, groupConfirmed: true,
+    itinerary: [
+      {
+        day: 1, date: '2026/06/25', pickupTime: '10:00',
+        receivingCompany: 'Bangkok Tour Co., Ltd.', driverName: 'สมชาย ใจดี',
+        hotelBooking: 'Dusit Thani Pattaya',
+        serviceType: 'รถเช่าทั้งวัน',
+        route: 'สนามบินสุวรรณภูมิ → พัทยา Dusit Thani',
+        hotelInfo: 'Dusit Thani Pattaya | TEL: 038-425-611',
+        note: 'มีเด็ก 2 คน ต้องการเบาะนิรภัย 2 ชุด',
+      },
+    ],
   },
 ];
 

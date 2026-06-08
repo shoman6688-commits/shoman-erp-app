@@ -7,29 +7,38 @@ import { useLang } from '../../context/LanguageContext';
 const PRIMARY = '#1A6B3C';
 const COUNTRY_FLAGS: Record<string, string> = { JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', CN: '🇨🇳', TW: '🇹🇼' };
 
-interface Props { supplierUsername: string; }
+interface Props {
+  supplierUsername: string;
+  onSelectOrder?: (id: string) => void;
+}
 
-export default function SupplierPendingScreen({ supplierUsername }: Props) {
+export default function SupplierPendingScreen({ supplierUsername, onSelectOrder }: Props) {
   const { tr } = useLang();
-  const [orders, setOrders] = useState<SupplierOrder[]>(
-    mockSupplierOrders.filter(o => o.supplierUsername === supplierUsername && o.status === 'pending')
+  // Derive from props each render — avoids stale useState snapshot on mount
+  const [hiddenIds, setHiddenIds] = useState<string[]>([]);
+  const orders = mockSupplierOrders.filter(
+    o => o.supplierUsername === supplierUsername && o.status === 'pending' && !hiddenIds.includes(o.id)
   );
 
   const handleConfirm = (id: string) => {
     Alert.alert(tr('confirmTitle'), tr('confirmMsg'), [
       { text: tr('cancel'), style: 'cancel' },
-      { text: tr('yes'), onPress: () => setOrders(prev => prev.filter(o => o.id !== id)) },
+      { text: tr('yes'), onPress: () => setHiddenIds(prev => [...prev, id]) },
     ]);
   };
 
   const handleReject = (id: string) => {
     Alert.alert(tr('rejectTitle'), tr('rejectMsg'), [
       { text: tr('cancel'), style: 'cancel' },
-      { text: tr('reject'), style: 'destructive', onPress: () => setOrders(prev => prev.filter(o => o.id !== id)) },
+      { text: tr('reject'), style: 'destructive', onPress: () => setHiddenIds(prev => [...prev, id]) },
     ]);
   };
 
   return (
+    <View style={{ flex: 1 }}>
+    <View style={styles.navHeader}>
+      <Text style={styles.navTitle}>{tr('headerPending')}</Text>
+    </View>
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
       {orders.length > 0 && (
         <View style={styles.badge}>
@@ -46,14 +55,15 @@ export default function SupplierPendingScreen({ supplierUsername }: Props) {
 
       {orders.map(order => (
         <View key={order.id} style={styles.card}>
-          <View style={styles.cardHeader}>
+          <TouchableOpacity style={styles.cardHeader} onPress={() => onSelectOrder?.(order.id)}>
             <Text style={styles.flag}>{COUNTRY_FLAGS[order.country] || '🌏'}</Text>
             <View style={{ flex: 1 }}>
               <Text style={styles.orderNo}>{order.orderNo}</Text>
               <Text style={styles.customer}>{order.customer} · {order.pax}名</Text>
             </View>
             <View style={styles.newBadge}><Text style={styles.newBadgeText}>NEW</Text></View>
-          </View>
+            <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
+          </TouchableOpacity>
 
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
@@ -103,11 +113,17 @@ export default function SupplierPendingScreen({ supplierUsername }: Props) {
         </View>
       ))}
     </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
+  navHeader: {
+    backgroundColor: '#fff', paddingTop: 56, paddingBottom: 14, paddingHorizontal: 16,
+    borderBottomWidth: 1, borderBottomColor: '#F2F2F7',
+  },
+  navTitle: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
   badge: { backgroundColor: '#FF9500', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, alignSelf: 'flex-start', marginBottom: 14 },
   badgeText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   empty: { alignItems: 'center', paddingTop: 100, gap: 12 },

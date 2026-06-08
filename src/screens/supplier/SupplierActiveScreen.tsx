@@ -7,158 +7,269 @@ import { useLang } from '../../context/LanguageContext';
 const PRIMARY = '#1A6B3C';
 const COUNTRY_FLAGS: Record<string, string> = { JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', CN: '🇨🇳', TW: '🇹🇼' };
 
-const STATUS_FLOW: SupplierOrderStatus[] = ['confirmed', 'departed', 'in_service', 'completed'];
+const STATUS_COLOR: Record<string, string> = {
+  pending: '#FF9500',
+  confirmed: '#1A73E8',
+  departed: '#007AFF',
+  in_service: PRIMARY,
+  completed: '#34C759',
+  cancelled: '#FF3B30',
+};
 
-interface Props { supplierUsername: string; }
+interface Props {
+  supplierUsername: string;
+  onSelectOrder?: (id: string) => void;
+}
 
-export default function SupplierActiveScreen({ supplierUsername }: Props) {
+interface OrderState {
+  transferConfirmed: boolean;
+  groupConfirmed: boolean;
+}
+
+export default function SupplierActiveScreen({ supplierUsername, onSelectOrder }: Props) {
   const { tr } = useLang();
-  const [orders, setOrders] = useState<SupplierOrder[]>(
-    mockSupplierOrders.filter(o => o.supplierUsername === supplierUsername && ['confirmed', 'departed', 'in_service'].includes(o.status))
-  );
 
-  const nextStatusLabel = (status: SupplierOrderStatus): string => {
-    if (status === 'confirmed') return tr('btnDepart');
-    if (status === 'departed') return tr('btnInService');
-    if (status === 'in_service') return tr('btnComplete');
-    return '';
-  };
+  // Derive from props each render — avoids stale useState snapshot on mount
+  const [hiddenIds, setHiddenIds] = useState<string[]>([]);
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({});
+  const [receiptUploaded, setReceiptUploaded] = useState<Record<string, boolean>>({});
+  const [confirmStates, setConfirmStates] = useState<Record<string, OrderState>>({});
 
-  const nextStatus = (status: SupplierOrderStatus): SupplierOrderStatus => {
-    const idx = STATUS_FLOW.indexOf(status);
-    return STATUS_FLOW[Math.min(idx + 1, STATUS_FLOW.length - 1)];
-  };
-
-  const statusColor = (s: SupplierOrderStatus) => {
-    if (s === 'confirmed') return '#FF9500';
-    if (s === 'departed') return '#1A73E8';
-    if (s === 'in_service') return PRIMARY;
-    return '#34C759';
-  };
+  const orders = mockSupplierOrders.filter(o => {
+    if (o.supplierUsername !== supplierUsername) return false;
+    if (hiddenIds.includes(o.id)) return false;
+    const status = statusOverrides[o.id] ?? o.status;
+    return status !== 'completed' && status !== 'cancelled';
+  });
 
   const statusLabel = (s: SupplierOrderStatus) => {
     const map: Record<string, string> = {
+      pending: tr('statusPending'),
       confirmed: tr('statusConfirmed'),
       departed: tr('statusDeparted'),
       in_service: tr('statusInService'),
       completed: tr('statusCompleted'),
+      cancelled: tr('statusCancelled'),
     };
     return map[s] ?? s;
   };
 
-  const handleAdvance = (id: string, current: SupplierOrderStatus) => {
-    const next = nextStatus(current);
-    const label = nextStatusLabel(current);
-    Alert.alert(label, `${statusLabel(current)} → ${statusLabel(next)}`, [
+  const handleConfirmOrder = (id: string) => {
+    Alert.alert(tr('confirmTitle'), tr('confirmMsg'), [
       { text: tr('cancel'), style: 'cancel' },
-      {
-        text: tr('yes'), onPress: () => {
-          setOrders(prev => next === 'completed'
-            ? prev.filter(o => o.id !== id)
-            : prev.map(o => o.id === id ? { ...o, status: next } : o)
-          );
-        }
-      },
+      { text: tr('yes'), onPress: () => setStatusOverrides(prev => ({ ...prev, [id]: 'confirmed' })) },
+    ]);
+  };
+
+  const handleRejectOrder = (id: string) => {
+    Alert.alert(tr('rejectTitle'), tr('rejectMsg'), [
+      { text: tr('cancel'), style: 'cancel' },
+      { text: tr('reject'), style: 'destructive', onPress: () => setHiddenIds(prev => [...prev, id]) },
+    ]);
+  };
+
+  const handleToggleTransfer = (id: string) => {
+    if (confirmStates[id]?.transferConfirmed) return;
+    Alert.alert(tr('labelTransferConfirm'), tr('confirmMsg'), [
+      { text: tr('cancel'), style: 'cancel' },
+      { text: tr('yes'), onPress: () => setConfirmStates(prev => ({ ...prev, [id]: { ...prev[id], transferConfirmed: true, groupConfirmed: prev[id]?.groupConfirmed ?? false } })) },
+    ]);
+  };
+
+  const handleToggleGroup = (id: string) => {
+    if (confirmStates[id]?.groupConfirmed) return;
+    Alert.alert(tr('labelGroupConfirm'), tr('confirmMsg'), [
+      { text: tr('cancel'), style: 'cancel' },
+      { text: tr('yes'), onPress: () => setConfirmStates(prev => ({ ...prev, [id]: { transferConfirmed: prev[id]?.transferConfirmed ?? false, groupConfirmed: true } })) },
     ]);
   };
 
   const handleUpload = (id: string) => {
     Alert.alert(tr('uploadTitle'), '', [
       { text: tr('cancel'), style: 'cancel' },
-      { text: tr('btnUpload'), onPress: () => setOrders(prev => prev.map(o => o.id === id ? { ...o, receiptUploaded: true } : o)) },
+      { text: tr('btnUpload'), onPress: () => setReceiptUploaded(prev => ({ ...prev, [id]: true })) },
     ]);
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
-      {orders.length === 0 && (
-        <View style={styles.empty}>
-          <Ionicons name="car-outline" size={60} color="#C7C7CC" />
-          <Text style={styles.emptyText}>{tr('emptyActive')}</Text>
+    <View style={{ flex: 1 }}>
+      <View style={styles.navHeader}>
+        <Text style={styles.navTitle}>{tr('headerActive')}</Text>
+        <View style={styles.countBadge}>
+          <Text style={styles.countText}>{orders.length}</Text>
         </View>
-      )}
+      </View>
 
-      {orders.map(order => (
-        <View key={order.id} style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.flag}>{COUNTRY_FLAGS[order.country] || '🌏'}</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.orderNo}>{order.orderNo}</Text>
-              <Text style={styles.customer}>{order.customer} · {order.pax}名</Text>
-            </View>
-            <View style={[styles.statusBadge, { backgroundColor: statusColor(order.status) + '22' }]}>
-              <Text style={[styles.statusText, { color: statusColor(order.status) }]}>{statusLabel(order.status)}</Text>
-            </View>
+      <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
+        {orders.length === 0 && (
+          <View style={styles.empty}>
+            <Ionicons name="document-text-outline" size={60} color="#C7C7CC" />
+            <Text style={styles.emptyText}>{tr('emptyActive')}</Text>
           </View>
+        )}
 
-          <View style={styles.dateRow}>
-            <Ionicons name="calendar-outline" size={14} color="#8E8E93" />
-            <Text style={styles.dateText}>{order.departure} → {order.return}</Text>
-            <Text style={styles.sep}>·</Text>
-            <Text style={styles.vehicleText}>{order.vehicle}</Text>
-          </View>
+        {orders.map(order => {
+          const effectiveStatus = statusOverrides[order.id] ?? order.status;
+          const cs = confirmStates[order.id] ?? { transferConfirmed: order.transferConfirmed, groupConfirmed: order.groupConfirmed };
+          const isReceiptUploaded = receiptUploaded[order.id] ?? order.receiptUploaded;
+          const isPending = effectiveStatus === 'pending';
 
-          <View style={styles.routeBox}>
-            <Text style={styles.routeLabel}>{tr('labelRoute')}</Text>
-            <Text style={styles.routeText}>{order.route}</Text>
-          </View>
-
-          {order.note ? (
-            <View style={styles.noteBox}>
-              <Ionicons name="alert-circle-outline" size={13} color="#FF9500" />
-              <Text style={styles.noteText}>{order.note}</Text>
-            </View>
-          ) : null}
-
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.uploadBtn, order.receiptUploaded && styles.uploadedBtn]}
-              onPress={() => !order.receiptUploaded && handleUpload(order.id)}
-            >
-              <Ionicons name={order.receiptUploaded ? 'checkmark-circle' : 'cloud-upload-outline'} size={16} color={order.receiptUploaded ? '#34C759' : PRIMARY} />
-              <Text style={[styles.uploadText, order.receiptUploaded && styles.uploadedText]}>
-                {order.receiptUploaded ? tr('uploadDone') : tr('btnUpload')}
-              </Text>
-            </TouchableOpacity>
-
-            {order.status !== 'completed' && (
-              <TouchableOpacity style={styles.advanceBtn} onPress={() => handleAdvance(order.id, order.status)}>
-                <Text style={styles.advanceText}>{nextStatusLabel(order.status)}</Text>
-                <Ionicons name="arrow-forward" size={16} color="#fff" />
+          return (
+            <View key={order.id} style={styles.card}>
+              {/* Header — tappable to view detail */}
+              <TouchableOpacity style={styles.cardHeader} onPress={() => onSelectOrder?.(order.id)}>
+                <Text style={styles.flag}>{COUNTRY_FLAGS[order.country] || '🌏'}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.orderNo}>{order.orderNo}</Text>
+                  <Text style={styles.customer}>{order.customer} · {order.pax}人 · {order.vehicle}</Text>
+                </View>
+                <View style={[styles.statusBadge, { backgroundColor: STATUS_COLOR[effectiveStatus] + '22' }]}>
+                  <Text style={[styles.statusText, { color: STATUS_COLOR[effectiveStatus] }]}>{statusLabel(effectiveStatus)}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
               </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      ))}
-    </ScrollView>
+
+              {/* Date & region row */}
+              <View style={styles.metaRow}>
+                <Ionicons name="calendar-outline" size={13} color="#8E8E93" />
+                <Text style={styles.metaText}>{order.departure} → {order.return}</Text>
+                <Text style={styles.sep}>·</Text>
+                <Text style={styles.metaText}>{order.region}</Text>
+              </View>
+
+              {/* Note */}
+              {order.note ? (
+                <View style={styles.noteBox}>
+                  <Ionicons name="alert-circle-outline" size={13} color="#FF9500" />
+                  <Text style={styles.noteText}>{order.note}</Text>
+                </View>
+              ) : null}
+
+              {/* Actions */}
+              {isPending ? (
+                /* Pending: confirm / reject */
+                <View style={styles.actions}>
+                  <TouchableOpacity style={styles.rejectBtn} onPress={() => handleRejectOrder(order.id)}>
+                    <Ionicons name="close" size={16} color="#FF3B30" />
+                    <Text style={styles.rejectText}>{tr('btnCannotAccept')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.confirmBtn} onPress={() => handleConfirmOrder(order.id)}>
+                    <Ionicons name="checkmark" size={16} color="#fff" />
+                    <Text style={styles.confirmText}>{tr('btnConfirm')}</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                /* Confirmed / active: transfer confirm + group confirm + receipt */
+                <View style={styles.actions}>
+                  <TouchableOpacity
+                    style={[styles.checkBtn, cs.transferConfirmed && styles.checkBtnDone]}
+                    onPress={() => handleToggleTransfer(order.id)}
+                  >
+                    <Ionicons
+                      name={cs.transferConfirmed ? 'checkmark-circle' : 'radio-button-off'}
+                      size={15}
+                      color={cs.transferConfirmed ? '#34C759' : '#8E8E93'}
+                    />
+                    <Text style={[styles.checkBtnText, cs.transferConfirmed && { color: '#34C759' }]}>
+                      {tr('labelTransferConfirm')}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.checkBtn, cs.groupConfirmed && styles.checkBtnDone]}
+                    onPress={() => handleToggleGroup(order.id)}
+                  >
+                    <Ionicons
+                      name={cs.groupConfirmed ? 'checkmark-circle' : 'radio-button-off'}
+                      size={15}
+                      color={cs.groupConfirmed ? '#34C759' : '#8E8E93'}
+                    />
+                    <Text style={[styles.checkBtnText, cs.groupConfirmed && { color: '#34C759' }]}>
+                      {tr('labelGroupConfirm')}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.uploadBtn, isReceiptUploaded && styles.uploadBtnDone]}
+                    onPress={() => !isReceiptUploaded && handleUpload(order.id)}
+                  >
+                    <Ionicons
+                      name={isReceiptUploaded ? 'checkmark-circle' : 'cloud-upload-outline'}
+                      size={15}
+                      color={isReceiptUploaded ? '#34C759' : PRIMARY}
+                    />
+                    <Text style={[styles.uploadBtnText, isReceiptUploaded && { color: '#34C759' }]}>
+                      {isReceiptUploaded ? tr('uploadDone') : tr('btnUpload')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
+  navHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#fff', paddingTop: 56, paddingBottom: 14, paddingHorizontal: 16,
+    borderBottomWidth: 1, borderBottomColor: '#F2F2F7',
+  },
+  navTitle: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
+  countBadge: { backgroundColor: PRIMARY, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
+  countText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   empty: { alignItems: 'center', paddingTop: 100, gap: 12 },
   emptyText: { fontSize: 15, color: '#8E8E93', textAlign: 'center' },
-  card: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 14, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 10, elevation: 2 },
+
+  card: {
+    backgroundColor: '#fff', borderRadius: 16, padding: 14,
+    marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
+  },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
   flag: { fontSize: 22 },
   orderNo: { fontSize: 14, fontWeight: '800', color: '#1C1C1E' },
   customer: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
-  statusBadge: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  statusText: { fontSize: 12, fontWeight: '700' },
-  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
-  dateText: { fontSize: 13, color: '#3C3C43' },
+  statusBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, alignSelf: 'flex-start' },
+  statusText: { fontSize: 11, fontWeight: '700' },
+
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  metaText: { fontSize: 12, color: '#3C3C43' },
   sep: { color: '#C7C7CC' },
-  vehicleText: { fontSize: 13, color: '#3C3C43', fontWeight: '600' },
-  routeBox: { backgroundColor: '#F5F5F5', borderRadius: 10, padding: 10, marginBottom: 10 },
-  routeLabel: { fontSize: 11, color: '#8E8E93', marginBottom: 3, fontWeight: '600' },
-  routeText: { fontSize: 12, color: '#1C1C1E', lineHeight: 18 },
-  noteBox: { flexDirection: 'row', gap: 6, backgroundColor: '#FFF8ED', borderRadius: 8, padding: 8, marginBottom: 10 },
-  noteText: { fontSize: 12, color: '#FF9500', flex: 1 },
-  actions: { flexDirection: 'row', gap: 10 },
-  uploadBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1.5, borderColor: PRIMARY, borderRadius: 10, paddingVertical: 11 },
-  uploadedBtn: { borderColor: '#34C759', backgroundColor: '#E9FAF0' },
-  uploadText: { fontSize: 13, fontWeight: '600', color: PRIMARY },
-  uploadedText: { color: '#34C759' },
-  advanceBtn: { flex: 1.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: PRIMARY, borderRadius: 10, paddingVertical: 11 },
-  advanceText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+
+  noteBox: {
+    flexDirection: 'row', gap: 6, backgroundColor: '#FFF8ED',
+    borderRadius: 8, padding: 8, marginBottom: 10,
+  },
+  noteText: { fontSize: 12, color: '#FF9500', flex: 1, lineHeight: 18 },
+
+  actions: { flexDirection: 'row', gap: 8, marginTop: 4 },
+
+  rejectBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 4, borderWidth: 1.5, borderColor: '#FF3B30', borderRadius: 10, paddingVertical: 10,
+  },
+  rejectText: { fontSize: 12, fontWeight: '700', color: '#FF3B30' },
+  confirmBtn: {
+    flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 4, backgroundColor: PRIMARY, borderRadius: 10, paddingVertical: 10,
+  },
+  confirmText: { fontSize: 12, fontWeight: '700', color: '#fff' },
+
+  checkBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 4, borderWidth: 1.5, borderColor: '#E5E5EA', borderRadius: 10, paddingVertical: 10,
+  },
+  checkBtnDone: { borderColor: '#34C759', backgroundColor: '#E9FAF0' },
+  checkBtnText: { fontSize: 11, fontWeight: '600', color: '#8E8E93' },
+
+  uploadBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 4, borderWidth: 1.5, borderColor: PRIMARY, borderRadius: 10, paddingVertical: 10,
+  },
+  uploadBtnDone: { borderColor: '#34C759', backgroundColor: '#E9FAF0' },
+  uploadBtnText: { fontSize: 11, fontWeight: '600', color: PRIMARY },
 });

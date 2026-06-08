@@ -1,18 +1,68 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useLang } from '../context/LanguageContext';
 import SupplierPendingScreen from '../screens/supplier/SupplierPendingScreen';
 import SupplierActiveScreen from '../screens/supplier/SupplierActiveScreen';
 import SupplierHistoryScreen from '../screens/supplier/SupplierHistoryScreen';
 import SupplierProfileScreen from '../screens/supplier/SupplierProfileScreen';
+import SupplierOrderDetailScreen from '../screens/supplier/SupplierOrderDetailScreen';
 
 const Tab = createBottomTabNavigator();
+const PendingStack = createNativeStackNavigator();
+const ActiveStack = createNativeStackNavigator();
 const PRIMARY = '#1A6B3C';
 
 interface Props {
   supplierUsername: string;
   onLogout: () => void;
+}
+
+function PendingStackNav({ supplierUsername }: { supplierUsername: string }) {
+  return (
+    <PendingStack.Navigator screenOptions={{ headerShown: false }}>
+      <PendingStack.Screen name="PendingList">
+        {(props) => (
+          <SupplierPendingScreen
+            supplierUsername={supplierUsername}
+            onSelectOrder={(id) => props.navigation.navigate('OrderDetail', { orderId: id })}
+          />
+        )}
+      </PendingStack.Screen>
+      <PendingStack.Screen name="OrderDetail">
+        {(props) => (
+          <SupplierOrderDetailScreen
+            orderId={(props.route.params as any).orderId}
+            onBack={() => props.navigation.goBack()}
+          />
+        )}
+      </PendingStack.Screen>
+    </PendingStack.Navigator>
+  );
+}
+
+function ActiveStackNav({ supplierUsername }: { supplierUsername: string }) {
+  return (
+    <ActiveStack.Navigator screenOptions={{ headerShown: false }}>
+      <ActiveStack.Screen name="ActiveList">
+        {(props) => (
+          <SupplierActiveScreen
+            supplierUsername={supplierUsername}
+            onSelectOrder={(id) => props.navigation.navigate('OrderDetail', { orderId: id })}
+          />
+        )}
+      </ActiveStack.Screen>
+      <ActiveStack.Screen name="OrderDetail">
+        {(props) => (
+          <SupplierOrderDetailScreen
+            orderId={(props.route.params as any).orderId}
+            onBack={() => props.navigation.goBack()}
+          />
+        )}
+      </ActiveStack.Screen>
+    </ActiveStack.Navigator>
+  );
 }
 
 export default function SupplierNavigator({ supplierUsername, onLogout }: Props) {
@@ -43,15 +93,15 @@ export default function SupplierNavigator({ supplierUsername, onLogout }: Props)
     >
       <Tab.Screen
         name="pending"
-        options={{ title: tr('headerPending'), tabBarLabel: tr('tabPending') }}
+        options={{ title: tr('headerPending'), tabBarLabel: tr('tabPending'), headerShown: false }}
       >
-        {() => <SupplierPendingScreen supplierUsername={supplierUsername} />}
+        {() => <PendingStackNav supplierUsername={supplierUsername} />}
       </Tab.Screen>
       <Tab.Screen
         name="active"
-        options={{ title: tr('headerActive'), tabBarLabel: tr('tabActive') }}
+        options={{ title: tr('headerActive'), tabBarLabel: tr('tabActive'), headerShown: false }}
       >
-        {() => <SupplierActiveScreen supplierUsername={supplierUsername} />}
+        {() => <ActiveStackNav supplierUsername={supplierUsername} />}
       </Tab.Screen>
       <Tab.Screen
         name="history"
