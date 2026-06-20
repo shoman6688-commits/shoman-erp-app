@@ -31,7 +31,14 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+
+# netlify / agent-run / claude-flow / local txt drafts
+.netlify/
+.agent-run/
+.claude-flow/
+*.txt
 
 # typescript
 *.tsbuildinfo

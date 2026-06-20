@@ -22,7 +22,7 @@
       "favicon": "./assets/favicon.png"
     },
     "experiments": {
-      "baseUrl": "/xiaoman-erp-app"
+      "baseUrl": "/shoman-erp-app"
     }
   }
 }

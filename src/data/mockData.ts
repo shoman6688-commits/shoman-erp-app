@@ -27,10 +27,23 @@ export interface DayItinerary {
   note: string;
 }
 
+export interface DriverInfo {
+  name: string;
+  phone: string;
+  vehiclePlate: string;
+}
+
+export interface CustomerRating {
+  stars: number;
+  comment: string;
+  ratedAt: string;
+}
+
 export interface SupplierOrder {
   id: string;
   orderNo: string;
   customer: string;
+  customerEmail?: string;
   pax: number;
   departure: string;
   return: string;
@@ -46,11 +59,13 @@ export interface SupplierOrder {
   transferConfirmed: boolean;
   groupConfirmed: boolean;
   itinerary: DayItinerary[];
+  driverInfo?: DriverInfo;
+  customerRating?: CustomerRating;
 }
 
 export const mockSupplierOrders: SupplierOrder[] = [
   {
-    id: 'so001', orderNo: 'TYO01AF260615A', customer: '林志豪', pax: 4,
+    id: 'so001', orderNo: 'TYO01AF260615A', customer: '林志豪', customerEmail: 'lin.zhihao@gmail.com', pax: 4,
     departure: '2026/06/15', return: '2026/06/15', vehicle: 'アルファード',
     region: '関東地区', route: '成田空港 → 浅草 → 東京スカイツリー → 新宿',
     note: '客人攜帶大型行李 x4，請提前確認行李廂空間',
@@ -70,7 +85,7 @@ export const mockSupplierOrders: SupplierOrder[] = [
     ],
   },
   {
-    id: 'so002', orderNo: 'TYO02AF260618A', customer: 'VIP-陳家明', pax: 6,
+    id: 'so002', orderNo: 'TYO02AF260618A', customer: 'VIP-陳家明', customerEmail: 'vip.chen@gmail.com', pax: 6,
     departure: '2026/06/18', return: '2026/06/21', vehicle: 'アルファード',
     region: '関東地区', route: '羽田空港 → 鎌倉 → 箱根 → 富士山五合目 → 東京',
     note: 'VIP客戶，請司機著正式服裝。全程需要英語或中文服務',
@@ -117,13 +132,14 @@ export const mockSupplierOrders: SupplierOrder[] = [
     ],
   },
   {
-    id: 'so003', orderNo: 'SDJ01HA260616A', customer: '王美玲', pax: 7,
+    id: 'so003', orderNo: 'SDJ01HA260616A', customer: '王美玲', customerEmail: 'wang.meiling@gmail.com', pax: 7,
     departure: '2026/06/16', return: '2026/06/18', vehicle: 'ハイエース',
     region: '東北地区', route: '仙台駅 → 松島 → 平泉 → 花巻温泉',
     note: '2泊3日、ドライバー宿泊費含む',
     salesContact: '蔡潔萱JENNY', status: 'confirmed', country: 'JP',
     supplierUsername: 'jp001', receiptUploaded: false,
     transferConfirmed: true, groupConfirmed: false,
+    driverInfo: { name: '田中 健一', phone: '+81-90-1234-5678', vehiclePlate: '宮城 300 あ 1234' },
     itinerary: [
       {
         day: 1, date: '2026/06/16', pickupTime: '09:00',
@@ -155,13 +171,15 @@ export const mockSupplierOrders: SupplierOrder[] = [
     ],
   },
   {
-    id: 'so004', orderNo: 'SPK03AF260610A', customer: '張志強', pax: 5,
+    id: 'so004', orderNo: 'SPK03AF260610A', customer: '張志強', customerEmail: 'demo@shoman.com', pax: 5,
     departure: '2026/06/10', return: '2026/06/14', vehicle: 'アルファード',
     region: '北海道', route: '新千歳空港 → 小樽 → 富良野 → 旭川動物園 → 札幌',
     note: '花季行程，請確認薰衣草開花狀況',
     salesContact: '黃煒楷KEN', status: 'completed', country: 'JP',
     supplierUsername: 'jp002', receiptUploaded: true,
     transferConfirmed: true, groupConfirmed: true,
+    driverInfo: { name: '佐藤 博', phone: '+81-90-8765-4321', vehiclePlate: '札幌 300 さ 5678' },
+    customerRating: { stars: 5, comment: '司機非常專業，行程安排很完善！薰衣草超美。', ratedAt: '2026/06/15' },
     itinerary: [
       {
         day: 1, date: '2026/06/10', pickupTime: '14:00',
@@ -184,7 +202,7 @@ export const mockSupplierOrders: SupplierOrder[] = [
     ],
   },
   {
-    id: 'so005', orderNo: 'BKK01VN260620A', customer: '劉志遠', pax: 6,
+    id: 'so005', orderNo: 'BKK01VN260620A', customer: '劉志遠', customerEmail: 'liu.zhiyuan@gmail.com', pax: 6,
     departure: '2026/06/20', return: '2026/06/23', vehicle: 'Van',
     region: 'กรุงเทพฯ', route: 'สนามบินสุวรรณภูมิ → วัดพระแก้ว → อยุธยา',
     note: 'ลูกค้าต้องการมัคคุเทศก์ที่พูดภาษาจีนได้',
@@ -222,7 +240,7 @@ export const mockSupplierOrders: SupplierOrder[] = [
     ],
   },
   {
-    id: 'so007', orderNo: 'VIP-SEL05HD260616A', customer: 'VIP客戶', pax: 5,
+    id: 'so007', orderNo: 'VIP-SEL05HD260616A', customer: 'VIP客戶', customerEmail: 'demo@shoman.com', pax: 5,
     departure: '2026/06/16', return: '2026/06/20', vehicle: 'Hyundai H350',
     region: '首爾/江原道', route: '仁川機場→江華島→明洞→江陵→注文津→首爾→仁川機場',
     note: '入境 LJ736 14:15 / 出境 LJ737 14:50，請提前確認航班',
@@ -278,13 +296,14 @@ export const mockSupplierOrders: SupplierOrder[] = [
     ],
   },
   {
-    id: 'so006', orderNo: 'BKK02VN260625A', customer: '黃淑芬', pax: 8,
+    id: 'so006', orderNo: 'BKK02VN260625A', customer: '黃淑芬', customerEmail: 'huang.shufen@gmail.com', pax: 8,
     departure: '2026/06/25', return: '2026/06/28', vehicle: 'Van',
     region: 'พัทยา', route: 'กรุงเทพฯ → พัทยา → เกาะล้าน → ชลบุรี',
     note: 'มีเด็กเล็ก 2 คน ต้องการที่นั่งนิรภัยสำหรับเด็ก',
     salesContact: '張琳青RITA', status: 'confirmed', country: 'TH',
     supplierUsername: 'th001', receiptUploaded: false,
     transferConfirmed: true, groupConfirmed: true,
+    driverInfo: { name: 'สมชาย ใจดี', phone: '+66-81-234-5678', vehiclePlate: 'กข 1234 กรุงเทพ' },
     itinerary: [
       {
         day: 1, date: '2026/06/25', pickupTime: '10:00',
